@@ -1,7 +1,7 @@
 # Kontraŭspama roboto por Telegram
 
 Jen roboto por Telegram kiu provas aŭtomate forviŝi kelkajn specojn de
-spamo kaj forbaras la sendinton. Plejparte la spamo kiujn ni ricevas
+spamo kaj forbaras la sendinton. Plejparte la spamo kiun ni ricevas
 lastatempe estas plusendita de nur unu-du kanaloj. Do la skripto
 rekonas plusendaĵojn de tiuj kanaloj.
 
