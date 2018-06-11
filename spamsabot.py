@@ -30,7 +30,7 @@ conf_dir = os.path.expanduser("~/.spamsabot")
 update_id_file = os.path.join(conf_dir, "update_id")
 apikey_file = os.path.join(conf_dir, "apikey")
 
-banned_users = ['SexGirlsAnalMature', 'LiveSexOnline']
+banned_users = ['SexGirlsAnalMature', 'LiveSexOnline', 'girlsprodating']
 
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
