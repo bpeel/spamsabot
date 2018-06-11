@@ -33,7 +33,8 @@ apikey_file = os.path.join(conf_dir, "apikey")
 banned_users = ['SexGirlsAnalMature',
                 'LiveSexOnline',
                 'girlsprodating',
-                'MaturesexyOnline']
+                'MaturesexyOnline',
+                'casinoooooo']
 
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
