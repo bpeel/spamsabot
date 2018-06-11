@@ -148,23 +148,23 @@ def report(message):
     except HandleMessageException as e:
         print("{}".format(e), file=sys.stderr)
 
-def delete_message(chat_id, message_id):
+def delete_message(chat_id, message_id, title):
     args = {
         'chat_id': chat_id,
         'message_id': message_id
     }
 
-    report("Removing message {} from {}".format(message_id, chat_id))
+    report("Removing message {} from {}".format(message_id, title))
 
     send_request('deleteMessage', args)
     
-def kick_user(chat_id, user_id):
+def kick_user(chat_id, user_id, title):
     args = {
         'chat_id': chat_id,
         'user_id': user_id
     }
 
-    report("Kicking {} from {}".format(user_id, chat_id))
+    report("Kicking {} from {}".format(user_id, title))
 
     send_request('kickChatMember', args)
     
@@ -213,8 +213,13 @@ while True:
         if username not in banned_users:
             continue
 
+        if 'title' in chat:
+            title = chat['title']
+        else:
+            title = str(chat_id)
+
         try:
-            delete_message(chat_id, message_id)
-            kick_user(chat_id, from_id)
+            delete_message(chat_id, message_id, title)
+            kick_user(chat_id, from_id, title)
         except HandleMessageException as e:
             print("{}".format(e), file=sys.stderr)
