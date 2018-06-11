@@ -157,7 +157,7 @@ def delete_message(chat_id, message_id, title):
         'message_id': message_id
     }
 
-    report("Removing message {} from {}".format(message_id, title))
+    report("Forigos mesaĝon de {} en {}".format(message_id, title))
 
     send_request('deleteMessage', args)
     
@@ -167,7 +167,7 @@ def kick_user(chat_id, user_id, title):
         'user_id': user_id
     }
 
-    report("Kicking {} from {}".format(user_id, title))
+    report("Forbaros {} de {}".format(user_id, title))
 
     send_request('kickChatMember', args)
     
