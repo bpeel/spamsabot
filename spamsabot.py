@@ -35,6 +35,14 @@ banned_users = ['SexGirlsAnalMature', 'LiveSexOnline', 'girlsprodating']
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
 
+try:
+    with open(os.path.join(conf_dir, "report_channel"),
+              'r',
+              encoding='utf-8') as f:
+        report_channel = f.read().strip()
+except FileNotFoundError:
+    report_channel = None
+
 urlbase = "https://api.telegram.org/bot" + apikey + "/"
 get_updates_url = urlbase + "getUpdates"
 
@@ -124,13 +132,29 @@ def send_request(request, args):
 
     return rep
 
+def report(message):
+    print(message)
+
+    if report_channel is None:
+        return
+
+    args = {
+        'text': message,
+        'chat_id': report_channel
+    }
+
+    try:
+        send_request('sendMessage', args)
+    except HandleMessageException as e:
+        print("{}".format(e), file=sys.stderr)
+
 def delete_message(chat_id, message_id):
     args = {
         'chat_id': chat_id,
         'message_id': message_id
     }
 
-    print("Removing message {} from {}".format(message_id, chat_id))
+    report("Removing message {} from {}".format(message_id, chat_id))
 
     send_request('deleteMessage', args)
     
@@ -140,7 +164,7 @@ def kick_user(chat_id, user_id):
         'user_id': user_id
     }
 
-    print("Kicking {} from {}".format(user_id, chat_id))
+    report("Kicking {} from {}".format(user_id, chat_id))
 
     send_request('kickChatMember', args)
     
