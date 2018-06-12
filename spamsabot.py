@@ -66,6 +66,9 @@ class GetUpdatesException(Exception):
 class HandleMessageException(Exception):
     pass
 
+class ProcessCommandException(Exception):
+    pass
+
 def save_last_update_id(last_update_id):
     with open(update_id_file, 'w', encoding='utf-8') as f:
         print(last_update_id, file=f)
@@ -186,6 +189,44 @@ def is_banned(forward):
             return True
 
     return False
+
+def send_reply(message, note):
+    args = {
+        'chat_id' : message['chat']['id'],
+        'text' : note,
+        'reply_to_message_id' : message['message_id']
+    }
+
+    send_request('sendMessage', args)
+
+def process_command(message, command, args):
+    if command == '/start':
+        send_reply(message,
+                   "Ĉi tiu roboto provas aŭtomate forigi kelkajn tipojn de "
+                   "spamo. Aldonu ĝin al grupo kaj administrantigu ĝin se vi "
+                   "volas uzi ĝin en via grupo.")
+
+def find_command(message):
+    if 'entities' not in message or 'text' not in message:
+        return None
+
+    for entity in message['entities']:
+        if 'type' not in entity or entity['type'] != 'bot_command':
+            continue
+
+        start = entity['offset']
+        length = entity['length']
+        # For some reason the offsets are in UTF-16 code points
+        text_utf16 = message['text'].encode('utf-16-le')
+        command_utf16 = text_utf16[start * 2 : (start + length) * 2]
+        command = command_utf16.decode('utf-16-le')
+        remainder_utf16 = text_utf16[(start + length) * 2 :]
+        remainder = remainder_utf16.decode('utf-16-le')
+
+        return (command, remainder)
+
+    return None
+
     
 while True:
     now = int(time.time())
@@ -205,6 +246,15 @@ while True:
 
         message = update['message']
         chat = message['chat']
+
+        if 'type' in chat and chat['type'] == 'private':
+            command = find_command(message)
+            if command is not None:
+                try:
+                    process_command(message, command[0], command[1])
+                except ProcessCommandException as e:
+                    print("{}".format(e), file=sys.stderr)
+            continue
 
         if 'id' not in chat:
             continue
