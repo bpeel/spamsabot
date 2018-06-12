@@ -27,7 +27,6 @@ import random
 import re
 
 conf_dir = os.path.expanduser("~/.spamsabot")
-update_id_file = os.path.join(conf_dir, "update_id")
 apikey_file = os.path.join(conf_dir, "apikey")
 
 banned_users = ['SexGirlsAnalMature',
@@ -54,11 +53,7 @@ except FileNotFoundError:
 urlbase = "https://api.telegram.org/bot" + apikey + "/"
 get_updates_url = urlbase + "getUpdates"
 
-try:
-    with open(update_id_file, 'r', encoding='utf-8') as f:
-        last_update_id = int(f.read().rstrip())
-except FileNotFoundError:
-    last_update_id = None
+last_update_id = None
 
 class GetUpdatesException(Exception):
     pass
@@ -69,19 +64,8 @@ class HandleMessageException(Exception):
 class ProcessCommandException(Exception):
     pass
 
-def save_last_update_id(last_update_id):
-    with open(update_id_file, 'w', encoding='utf-8') as f:
-        print(last_update_id, file=f)
-
-def is_valid_update(update, last_update_id):
+def is_valid_update(update):
     try:
-        update_id = update["update_id"]
-        if not isinstance(update_id, int):
-            raise GetUpdatesException("Unexpected response from getUpdates "
-                                      "request")
-        if last_update_id is not None and update_id <= last_update_id:
-            return False
-
         if 'message' not in update:
             return False
 
@@ -94,7 +78,9 @@ def is_valid_update(update, last_update_id):
 
     return True
 
-def get_updates(last_update_id):
+def get_updates():
+    global last_update_id
+
     args = {
         'allowed_updates': ['message']
     }
@@ -118,9 +104,16 @@ def get_updates(last_update_id):
                                       "request")
     except KeyError as e:
         raise GetUpdatesException(e)
+
+    last_update_id = None
+    for update in rep['result']:
+        if 'update_id' in update:
+            update_id = update['update_id']
+            if isinstance(update_id, int):
+                if last_update_id is None or update_id > last_update_id:
+                    last_update_id = update_id
         
-    updates = [x for x in rep['result'] if is_valid_update(x, last_update_id)]
-    updates.sort(key = lambda x: x['update_id'])
+    updates = [x for x in rep['result'] if is_valid_update(x)]
     return updates
 
 def send_request(request, args):
@@ -232,7 +225,7 @@ while True:
     now = int(time.time())
 
     try:
-        updates = get_updates(last_update_id)
+        updates = get_updates()
 
     except GetUpdatesException as e:
         print("{}".format(e), file=sys.stderr)
@@ -241,9 +234,6 @@ while True:
         continue
 
     for update in updates:
-        last_update_id = update['update_id']
-        save_last_update_id(last_update_id)
-
         message = update['message']
         chat = message['chat']
 
