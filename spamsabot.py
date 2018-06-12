@@ -34,7 +34,8 @@ banned_users = ['SexGirlsAnalMature',
                 'LiveSexOnline',
                 'girlsprodating',
                 'MaturesexyOnline',
-                'casinoooooo']
+                'casinoooooo',
+                'takhfifaat']
 
 banned_ids = [-1001352855954,
               -1001349053051]
