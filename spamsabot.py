@@ -25,22 +25,41 @@ import time
 import os
 import random
 import re
+import itertools
+import datetime
 
 conf_dir = os.path.expanduser("~/.spamsabot")
 apikey_file = os.path.join(conf_dir, "apikey")
+blacklist_file = os.path.join(conf_dir, "blacklist")
 
-banned_users = ['SexGirlsAnalMature',
-                'LiveSexOnline',
-                'girlsprodating',
-                'MaturesexyOnline',
-                'casinoooooo',
-                'takhfifaat']
-
-banned_ids = [-1001352855954,
-              -1001349053051]
+banned_users = set()
+banned_ids = set()
 
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
+
+try:
+    with open(blacklist_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            md = re.match('\s*#', line)
+            if md:
+                continue
+            md = re.match('^\s*(-?[0-9]+)\s*$', line)
+            if md:
+                banned_ids.add(int(md.group(1)))
+                continue
+            md = re.match('\s*(\S+)\s*$', line)
+            if md:
+                banned_users.add(md.group(1))
+                continue
+except FileNotFoundError:
+    pass
+
+try:
+    with open(os.path.join(conf_dir, "admin"), 'r', encoding='utf-8') as f:
+        administrator_id = int(f.read().strip())
+except FileNotFoundError:
+    administrator_id = None
 
 try:
     with open(os.path.join(conf_dir, "report_channel"),
@@ -63,6 +82,20 @@ class HandleMessageException(Exception):
 
 class ProcessCommandException(Exception):
     pass
+
+def save_blacklist():
+    global banned_ids, banned_users
+
+    today = datetime.date.today()
+    backup_file = "{}-{}".format(blacklist_file, today.isoformat())
+    try:
+        os.rename(blacklist_file, backup_file)
+    except FileNotFoundException:
+        pass
+
+    with open(blacklist_file, 'w', encoding='utf-8') as f:
+        for user in itertools.chain(banned_users, banned_ids):
+            print(user, file=f)
 
 def is_valid_update(update):
     try:
@@ -220,6 +253,36 @@ def find_command(message):
 
     return None
 
+def handle_spam_forward(message):
+    global banned_ids, banned_users
+
+    try:
+        from_id = message['from']['id']
+        forward = message['forward_from_chat']
+    except KeyError:
+        return False
+
+    if from_id != administrator_id:
+        return False
+
+    if 'username' in forward:
+        username = forward['username']
+        banned_users.add(username)
+        send_reply(message,
+                   "Aldonis la uzantnomon {} al la nigra listo".format(
+                       username))
+    elif 'id' in forward:
+        user_id = forward['id']
+        banned_ids.add(user_id)
+        send_reply(message,
+                   "Aldonis la uzantnumeron {} al la nigra listo".format(
+                       user_id))
+    else:
+        send_reply(message, "Neniu uzanto trovita en la mesaĝo")
+        return True
+
+    save_blacklist()
+    return True
     
 while True:
     now = int(time.time())
@@ -238,6 +301,8 @@ while True:
         chat = message['chat']
 
         if 'type' in chat and chat['type'] == 'private':
+            if handle_spam_forward(message):
+                continue
             command = find_command(message)
             if command is not None:
                 try:
