@@ -36,6 +36,9 @@ banned_users = ['SexGirlsAnalMature',
                 'MaturesexyOnline',
                 'casinoooooo']
 
+banned_ids = [-1001352855954,
+              -1001349053051]
+
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
 
@@ -171,6 +174,17 @@ def kick_user(chat_id, user_id, title):
     report("Forbaros {} de {}".format(user_id, title))
 
     send_request('kickChatMember', args)
+
+def is_banned(forward):
+    if 'username' in forward:
+        if forward['username'] in banned_users:
+            return True
+
+    if 'id' in forward:
+        if forward['id'] in banned_ids:
+            return True
+
+    return False
     
 while True:
     now = int(time.time())
@@ -201,11 +215,9 @@ while True:
 
         if 'forward_from_chat' not in message:
             continue
-        forward = message['forward_from_chat']
 
-        if 'username' not in forward:
+        if not is_banned(message['forward_from_chat']):
             continue
-        username = forward['username']
 
         if 'from' not in message:
             continue
@@ -213,9 +225,6 @@ while True:
         if 'id' not in from_info:
             continue
         from_id = from_info['id']
-
-        if username not in banned_users:
-            continue
 
         if 'title' in chat:
             title = chat['title']
