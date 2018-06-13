@@ -268,16 +268,26 @@ def handle_spam_forward(message):
 
     if 'username' in forward:
         username = forward['username']
-        banned_users.add(username)
-        send_reply(message,
-                   "Aldonis la uzantnomon {} al la nigra listo".format(
-                       username))
+        if username in banned_users:
+            send_reply(message,
+                       "La uzantonomo {} jam estas en la nigra listo".format(
+                           username))
+        else:
+            banned_users.add(username)
+            send_reply(message,
+                       "Aldonis la uzantnomon {} al la nigra listo".format(
+                           username))
     elif 'id' in forward:
         user_id = forward['id']
-        banned_ids.add(user_id)
-        send_reply(message,
-                   "Aldonis la uzantnumeron {} al la nigra listo".format(
-                       user_id))
+        if user_id in banned_ids:
+            send_reply(message,
+                       "La uzantonumero {} jam estas en la nigra listo".format(
+                           user_id))
+        else:
+            banned_ids.add(user_id)
+            send_reply(message,
+                       "Aldonis la uzantnumeron {} al la nigra listo".format(
+                           user_id))
     else:
         send_reply(message, "Neniu uzanto trovita en la mesaĝo")
         return True
