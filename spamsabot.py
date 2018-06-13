@@ -90,7 +90,7 @@ def save_blacklist():
     backup_file = "{}-{}".format(blacklist_file, today.isoformat())
     try:
         os.rename(blacklist_file, backup_file)
-    except FileNotFoundException:
+    except FileNotFoundError:
         pass
 
     with open(blacklist_file, 'w', encoding='utf-8') as f:
