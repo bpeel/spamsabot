@@ -35,6 +35,18 @@ blacklist_file = os.path.join(conf_dir, "blacklist")
 banned_users = set()
 banned_ids = set()
 
+FILTER_URL = r'https?://bit\.ly/[0-9a-zA-Z]+/?'
+FILTER_EMOJI = ("(?:(?:[\u2764\u2757\U0001f48b\U0001f46b\U0001f51e]"
+                "[\ufe00-\ufe0f]?)\u00ff?\\s*)+")
+FILTER_RE = re.compile(r'\s*H(?:i|ey)\s*' + FILTER_EMOJI +
+                       r'I(?:\'m| am)\s+[A-Za-z]+\s*' + FILTER_EMOJI +
+                       FILTER_URL + r'\s+' + FILTER_EMOJI +
+                       r'I(?:\'m| am)\s+[0-9]+\s+years\s+old\s*' +
+                       FILTER_EMOJI +
+                       r'I(?:\'m| am)\s+looking\s+for\s+a\s+man\s*' +
+                       FILTER_EMOJI + FILTER_URL + r'\s*' +
+                       FILTER_EMOJI + r'$')
+
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
 
@@ -206,13 +218,18 @@ def kick_user(chat_id, user_id, username, title):
 
     send_request('kickChatMember', args)
 
-def is_banned(forward):
+def is_banned(message, forward):
     if 'username' in forward:
         if forward['username'] in banned_users:
             return True
 
     if 'id' in forward:
         if forward['id'] in banned_ids:
+            return True
+
+    if ('photo' in message or 'document' in message) and 'caption' in message:
+        caption = message['caption']
+        if FILTER_RE.match(caption):
             return True
 
     return False
@@ -333,7 +350,7 @@ while True:
         if 'forward_from_chat' not in message:
             continue
 
-        if not is_banned(message['forward_from_chat']):
+        if not is_banned(message, message['forward_from_chat']):
             continue
 
         if 'from' not in message:
