@@ -47,8 +47,8 @@ FILTER_URL = r'https?://[\./0-9a-zA-Z]+'
 # (U+fe00-U+fe0f) and \uff (I’m not really sure why but some messages
 # have that). These can be repeated any amount of times and be
 # seperated by zero or more whitespace characters.
-FILTER_EMOJI = ("(?:(?:[\u2764\u2757\U0001f48b\U0001f46b\U0001f51e]"
-                "[\ufe00-\ufe0f]?)\u00ff?\\s*)+")
+FILTER_EMOJI = ("(?:[\u2764\u2757\U0001f48b\U0001f46b\U0001f51e]"
+                "[\ufe00-\ufe0f]?\u00ff?\\s*)+")
 FILTER_RE = re.compile(r'\s*H(?:i|ey)\s*' + FILTER_EMOJI +
                        r'I(?:\'m| am)\s+[A-Za-z]+\s*' + FILTER_EMOJI +
                        FILTER_URL + r'\s+' + FILTER_EMOJI +
