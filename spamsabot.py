@@ -36,7 +36,7 @@ blacklist_file = os.path.join(conf_dir, "blacklist")
 banned_users = set()
 banned_ids = set()
 
-FILTER_URL = r'https?://bit\.ly/[0-9a-zA-Z]+/?'
+FILTER_URL = r'https?://[\./0-9a-zA-Z]+'
 FILTER_EMOJI = ("(?:(?:[\u2764\u2757\U0001f48b\U0001f46b\U0001f51e]"
                 "[\ufe00-\ufe0f]?)\u00ff?\\s*)+")
 FILTER_RE = re.compile(r'\s*H(?:i|ey)\s*' + FILTER_EMOJI +
