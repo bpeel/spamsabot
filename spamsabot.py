@@ -27,6 +27,7 @@ import random
 import re
 import itertools
 import datetime
+import http
 
 conf_dir = os.path.expanduser("~/.spamsabot")
 apikey_file = os.path.join(conf_dir, "apikey")
@@ -138,7 +139,7 @@ def get_updates():
                                      json.dumps(args).encode('utf-8'))
         req.add_header('Content-Type', 'application/json; charset=utf-8')
         rep = json.load(io.TextIOWrapper(urllib.request.urlopen(req), 'utf-8'))
-    except urllib.error.URLError as e:
+    except (urllib.error.URLError, http.client.HTTPException) as e:
         raise GetUpdatesException(e)
     except json.JSONDecodeError as e:
         raise GetUpdatesException(e)
@@ -167,7 +168,7 @@ def send_request(request, args):
                                      json.dumps(args).encode('utf-8'))
         req.add_header('Content-Type', 'application/json; charset=utf-8')
         rep = json.load(io.TextIOWrapper(urllib.request.urlopen(req), 'utf-8'))
-    except urllib.error.URLError as e:
+    except (urllib.error.URLError, http.client.HTTPException) as e:
         raise HandleMessageException(e)
     except json.JSONDecodeError as e:
         raise HandleMessageException(e)
