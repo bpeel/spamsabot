@@ -37,6 +37,16 @@ banned_users = set()
 banned_ids = set()
 
 FILTER_URL = r'https?://[\./0-9a-zA-Z]+'
+# Matches any of the following emoji:
+# U+2764 HEAVY BLACK HEART ❤
+# U+2757 HEAVY EXCLAMATION MARK SYMBOL ❗
+# U+1f48b KISS MARK 💋
+# U+1f46b MAN AND WOMAN HOLDING HANDS 👫
+# U+1f51e NO ONE UNDER EIGHTEEN SYMBOL 🔞
+# They can optionally be followed by a variant selector
+# (U+fe00-U+fe0f) and \uff (I’m not really sure why but some messages
+# have that). These can be repeated any amount of times and be
+# seperated by zero or more whitespace characters.
 FILTER_EMOJI = ("(?:(?:[\u2764\u2757\U0001f48b\U0001f46b\U0001f51e]"
                 "[\ufe00-\ufe0f]?)\u00ff?\\s*)+")
 FILTER_RE = re.compile(r'\s*H(?:i|ey)\s*' + FILTER_EMOJI +
