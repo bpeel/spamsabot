@@ -79,6 +79,10 @@ We\s+only\s+have\s+free\s+girls\s*
 
 come\s+in\s+and\s+meet\s+URL\s*
 
+|
+
+EMOJI Relationships\s+For\s+sex,?\s+Here\s*!\s* URL \s+ EMOJI
+
 )
 
 $
@@ -96,6 +100,8 @@ assert(FILTER_RE.match(r"http://bit.do/enVd4  ◀️ 🖤❤️🖤❤️ You wa
 assert(FILTER_RE.match(r"💚💙💜 You want sex❓We only have free girls⚠️🔞 "
                        r"http://bit.do/enVd4"))
 assert(FILTER_RE.match(r"come in and meet http://catcut.net/n0Pv"))
+assert(FILTER_RE.match(r"💋 Relationships For sex, Here ! "
+                       r"http://bit.ly/2Ij6X9D ❤️❗️"))
 
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
