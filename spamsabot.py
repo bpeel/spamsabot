@@ -49,14 +49,16 @@ FILTER_URL = r'https?://[\./0-9a-zA-Z]+'
 # seperated by zero or more whitespace characters.
 FILTER_EMOJI = ("(?:[\u2764\u2757\U0001f48b\U0001f46b\U0001f51e]"
                 "[\ufe00-\ufe0f]?\u00ff?\\s*)+")
-FILTER_RE = re.compile(r'\s*H(?:i|ey)\s*' + FILTER_EMOJI +
-                       r'I(?:\'m| am)\s+[A-Za-z]+\s*' + FILTER_EMOJI +
-                       FILTER_URL + r'\s+' + FILTER_EMOJI +
-                       r'I(?:\'m| am)\s+[0-9]+\s+years\s+old\s*' +
-                       FILTER_EMOJI +
-                       r'I(?:\'m| am)\s+looking\s+for\s+a\s+man\s*' +
-                       FILTER_EMOJI + FILTER_URL + r'\s*' +
-                       FILTER_EMOJI + r'$')
+
+FILTER_RE_STRING = r"""
+\s*H(?:i|ey)\s* EMOJI I(?:\'m|\s+am)\s+[A-Za-z]+\s* EMOJI URL \s+ EMOJI
+I(?:\'m|\s+am)\s+[0-9]+\s+years\s+old\s* EMOJI
+I(?:\'m|\s+am)\s+looking\s+for\s+a\s+man\s* EMOJI URL \s* EMOJI $
+"""
+
+FILTER_RE = re.compile(FILTER_RE_STRING.replace("EMOJI", FILTER_EMOJI)
+                       .replace("URL", FILTER_URL),
+                       re.VERBOSE)
 
 assert(FILTER_RE.match(r"Hey💋 I'm Addison ❤️❗️ http://catcut.net/dlOv  ❗️"
                        r"I am 18 years old👫 I'm looking for a man🔞❗️ "
