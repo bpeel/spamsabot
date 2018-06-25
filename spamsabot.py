@@ -300,7 +300,7 @@ def is_banned(message):
     if 'forward_from_chat' in message:
         return is_banned_chat(message, message['forward_from_chat'])
 
-    if 'photo' and message and 'caption' not in message:
+    if 'photo' in message and 'caption' not in message:
         for file in message['photo']:
             if 'file_id' in file and file['file_id'] in banned_images:
                 return True
