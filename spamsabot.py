@@ -35,6 +35,7 @@ blacklist_file = os.path.join(conf_dir, "blacklist")
 
 banned_users = set()
 banned_ids = set()
+banned_images = set()
 
 FILTER_URL = r'https?://[\./0-9a-zA-Z]+'
 # Matches any of the following emoji:
@@ -105,6 +106,10 @@ try:
             md = re.match('\s*#', line)
             if md:
                 continue
+            md = re.match('^\s*image\s+(\S+)\s*$', line)
+            if md:
+                banned_images.add(md.group(1))
+                continue
             md = re.match('^\s*(-?[0-9]+)\s*$', line)
             if md:
                 banned_ids.add(int(md.group(1)))
@@ -145,7 +150,7 @@ class ProcessCommandException(Exception):
     pass
 
 def save_blacklist():
-    global banned_ids, banned_users
+    global banned_ids, banned_users, banned_images
 
     today = datetime.date.today()
     backup_file = "{}-{}".format(blacklist_file, today.isoformat())
@@ -157,6 +162,8 @@ def save_blacklist():
     with open(blacklist_file, 'w', encoding='utf-8') as f:
         for user in itertools.chain(banned_users, banned_ids):
             print(user, file=f)
+        for image in banned_images:
+            print("image {}".format(image), file=f)
 
 def is_valid_update(update):
     try:
@@ -267,7 +274,7 @@ def kick_user(chat_id, user_id, username, title):
 
     send_request('kickChatMember', args)
 
-def is_banned(message, forward):
+def is_banned_chat(message, forward):
     if 'username' in forward:
         if forward['username'] in banned_users:
             return True
@@ -280,6 +287,17 @@ def is_banned(message, forward):
         caption = message['caption']
         if FILTER_RE.match(caption):
             return True
+
+    return False
+
+def is_banned(message):
+    if 'forward_from_chat' in message:
+        return is_banned_chat(message, message['forward_from_chat'])
+
+    if 'photo' and message and 'caption' not in message:
+        for file in message['photo']:
+            if 'file_id' in file and file['file_id'] in banned_images:
+                return True
 
     return False
 
@@ -320,17 +338,10 @@ def find_command(message):
 
     return None
 
-def handle_spam_forward(message):
+def handle_chat_forward(message):
     global banned_ids, banned_users
 
-    try:
-        from_id = message['from']['id']
-        forward = message['forward_from_chat']
-    except KeyError:
-        return False
-
-    if from_id != administrator_id:
-        return False
+    forward = message['forward_from_chat']
 
     if 'username' in forward:
         username = forward['username']
@@ -360,6 +371,45 @@ def handle_spam_forward(message):
 
     save_blacklist()
     return True
+
+def handle_photo_forward(message):
+    global banned_images
+
+    photo = message['photo']
+    to_add = list()
+
+    for file in photo:
+        if 'file_id' not in file:
+            continue
+
+        to_add.append(file['file_id'])
+
+    if len(to_add) > 0:
+        banned_images.update(to_add)
+        save_blacklist()
+
+        send_reply(message,
+                   "Added {} to the image blacklist".format(
+                       ", ".join(to_add)))
+
+        return True
+
+    return False
+
+def handle_spam_forward(message):
+    try:
+        from_id = message['from']['id']
+    except KeyError:
+        return False
+
+    if from_id != administrator_id:
+        return False
+
+    if 'forward_from_chat' in message:
+        return handle_chat_forward(message)
+
+    if 'photo' in message and 'caption' not in message:
+        return handle_photo_forward(message)
     
 while True:
     now = int(time.time())
@@ -396,10 +446,7 @@ while True:
             continue
         message_id = message['message_id']
 
-        if 'forward_from_chat' not in message:
-            continue
-
-        if not is_banned(message, message['forward_from_chat']):
+        if not is_banned(message):
             continue
 
         if 'from' not in message:
