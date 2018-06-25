@@ -39,21 +39,48 @@ banned_ids = set()
 FILTER_URL = r'https?://[\./0-9a-zA-Z]+'
 # Matches any of the following emoji:
 # U+2764 HEAVY BLACK HEART ❤
+# U+1f5a4 BLACK HEART 🖤
 # U+2757 HEAVY EXCLAMATION MARK SYMBOL ❗
+# U+2753 BLACK QUESTION MARK ORNAMENT ❓
 # U+1f48b KISS MARK 💋
 # U+1f46b MAN AND WOMAN HOLDING HANDS 👫
 # U+1f51e NO ONE UNDER EIGHTEEN SYMBOL 🔞
+# U+25c0 BLACK LEFT-POINTING TRIANGLE ◀
+# U+25b6 BLACK RIGHT-POINTING TRIANGLE ▶
+# U+2705 WHITE HEAVY CHECK MARK ✅
+# U+2747 SPARKLE ❇
+# U+26A0 WARNING SIGN ⚠
+# U+1f493 - U+1f49f various hearts
 # They can optionally be followed by a variant selector
 # (U+fe00-U+fe0f) and \uff (I’m not really sure why but some messages
 # have that). These can be repeated any amount of times and be
 # seperated by zero or more whitespace characters.
-FILTER_EMOJI = ("(?:[\u2764\u2757\U0001f48b\U0001f46b\U0001f51e]"
+FILTER_EMOJI = ("(?:[\u2764\U0001f5a4\u2757\u2753\U0001f48b\U0001f46b\U0001f51e"
+                "\u25c0\u25b6\u2705\u2747\u26a0\U0001f493-\U0001f49f]"
                 "[\ufe00-\ufe0f]?\u00ff?\\s*)+")
 
 FILTER_RE_STRING = r"""
-\s*H(?:i|ey)\s* EMOJI I(?:\'m|\s+am)\s+[A-Za-z]+\s* EMOJI URL \s+ EMOJI
+\s*
+
+(?:
+
+H(?:i|ey)\s* EMOJI I(?:\'m|\s+am)\s+[A-Za-z]+\s* EMOJI URL \s+ EMOJI
 I(?:\'m|\s+am)\s+[0-9]+\s+years\s+old\s* EMOJI
-I(?:\'m|\s+am)\s+looking\s+for\s+a\s+man\s* EMOJI URL \s* EMOJI $
+I(?:\'m|\s+am)\s+looking\s+for\s+a\s+man\s* EMOJI URL \s* EMOJI
+
+|
+
+(?: URL \s* | EMOJI )* You\s+want\s+sex\s* (?: URL \s* | EMOJI )+
+We\s+only\s+have\s+free\s+girls\s*
+(?: URL \s* | EMOJI )+
+
+|
+
+come\s+in\s+and\s+meet\s+URL\s*
+
+)
+
+$
 """
 
 FILTER_RE = re.compile(FILTER_RE_STRING.replace("EMOJI", FILTER_EMOJI)
@@ -63,6 +90,11 @@ FILTER_RE = re.compile(FILTER_RE_STRING.replace("EMOJI", FILTER_EMOJI)
 assert(FILTER_RE.match(r"Hey💋 I'm Addison ❤️❗️ http://catcut.net/dlOv  ❗️"
                        r"I am 18 years old👫 I'm looking for a man🔞❗️ "
                        r"http://catcut.net/dlOv  ❗️"))
+assert(FILTER_RE.match(r"http://bit.do/enVd4  ◀️ 🖤❤️🖤❤️ You want sex❓"
+                       r"We only have free girls⚠️🔞 http://bit.do/enVd4"))
+assert(FILTER_RE.match(r"💚💙💜 You want sex❓We only have free girls⚠️🔞 "
+                       r"http://bit.do/enVd4"))
+assert(FILTER_RE.match(r"come in and meet http://catcut.net/n0Pv"))
 
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
