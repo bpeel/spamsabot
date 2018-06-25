@@ -251,7 +251,8 @@ def report(message):
 
     args = {
         'text': message,
-        'chat_id': report_channel
+        'chat_id': report_channel,
+        'parse_mode': 'HTML'
     }
 
     try:
@@ -463,14 +464,17 @@ while True:
         from_id = from_info['id']
 
         if 'title' in chat:
-            title = chat['title']
+            title = html.escape(chat['title'])
         else:
             title = str(chat_id)
 
         if 'username' in from_info:
-            username = "{} ({})".format(from_info['username'], from_id)
+            username = "{} ({})".format(html.escape(from_info['username']),
+                                        from_id)
         else:
             username = str(from_id)
+
+        username = '<a href="tg://user?id={}">{}</a>'.format(from_id, username)
 
         try:
             delete_message(chat_id, message_id, username, title)
