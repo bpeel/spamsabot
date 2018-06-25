@@ -58,6 +58,10 @@ FILTER_RE = re.compile(r'\s*H(?:i|ey)\s*' + FILTER_EMOJI +
                        FILTER_EMOJI + FILTER_URL + r'\s*' +
                        FILTER_EMOJI + r'$')
 
+assert(FILTER_RE.match(r"Hey💋 I'm Addison ❤️❗️ http://catcut.net/dlOv  ❗️"
+                       r"I am 18 years old👫 I'm looking for a man🔞❗️ "
+                       r"http://catcut.net/dlOv  ❗️"))
+
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
 
