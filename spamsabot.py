@@ -260,24 +260,19 @@ def report(message):
     except HandleMessageException as e:
         print("{}".format(e), file=sys.stderr)
 
-def delete_message(chat_id, message_id, username, title):
+def delete_message(chat_id, message_id):
     args = {
         'chat_id': chat_id,
         'message_id': message_id
     }
 
-    report("Forigos la mesaĝon {} de {} en {}".format(
-        message_id, username, title))
-
     send_request('deleteMessage', args)
     
-def kick_user(chat_id, user_id, username, title):
+def kick_user(chat_id, user_id):
     args = {
         'chat_id': chat_id,
         'user_id': user_id
     }
-
-    report("Forbaros {} de {}".format(username, title))
 
     send_request('kickChatMember', args)
 
@@ -476,8 +471,11 @@ while True:
 
         username = '<a href="tg://user?id={}">{}</a>'.format(from_id, username)
 
+        report("Forigos la mesaĝon {} de {} en {} kaj forbaros rin".format(
+            message_id, username, title))
+
         try:
-            delete_message(chat_id, message_id, username, title)
-            kick_user(chat_id, from_id, username, title)
+            delete_message(chat_id, message_id)
+            kick_user(chat_id, from_id)
         except HandleMessageException as e:
             print("{}".format(e), file=sys.stderr)
