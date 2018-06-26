@@ -83,6 +83,25 @@ come\s+in\s+and\s+meet\s+URL\s*
 
 EMOJI Relationships\s+For\s+sex,?\s+Here\s*!\s* URL \s+ EMOJI
 
+|
+
+EMOJI Girls\s+are\s+waiting\s+for\s+you,\s+bad\s+guy,\s+
+Hot\s+Fast\s+sex\s+100%\s+ URL \s+ EMOJI
+
+|
+
+Here\s+Only\s+Hot\s+Girls\s+for\s+sex\s*>+\s* EMOJI URL \s+ EMOJI
+
+|
+
+Hi\s+I'm\s+Barbara,\s* EMOJI I\s+want\s+a\s+bad\s+guy\s+!+\s* URL \s+ EMOJI
+
+|
+
+My\s+name\s+is\s+Amanda\.\s+
+I\s+want\s+to\s+get\s+acquainted\s+with\s+the\s+guy,\s+
+EMOJI my\s+photos\s+on\s+the\s+link\.\s*>+\s* URL \s*
+
 )
 
 $
@@ -102,6 +121,15 @@ assert(FILTER_RE.match(r"💚💙💜 You want sex❓We only have free girls⚠�
 assert(FILTER_RE.match(r"come in and meet http://catcut.net/n0Pv"))
 assert(FILTER_RE.match(r"💋 Relationships For sex, Here ! "
                        r"http://bit.ly/2Ij6X9D ❤️❗️"))
+assert(FILTER_RE.match(r"💋Girls are waiting for you, bad guy, Hot Fast sex "
+                       r"100% http://bit.ly/2K6g2IH ❤️❗️"))
+assert(FILTER_RE.match(r"Here Only Hot Girls for sex >>> ❤️❗️ "
+                       r"http://bit.ly/2K6g2IH ❤️❗️"))
+assert(FILTER_RE.match(r"Hi I'm Barbara, 💋 I want a bad guy !!! "
+                       r"http://bit.ly/2K6g2IH ❤️❗️"))
+assert(FILTER_RE.match(r"My name is Amanda. I want to get acquainted with the "
+                       r"guy, ❤️❗️ my photos on the link. >>> "
+                       r"http://bit.ly/2K6g2IH"))
 
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
