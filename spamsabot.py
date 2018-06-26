@@ -94,11 +94,11 @@ Here\s+Only\s+Hot\s+Girls\s+for\s+sex\s*>+\s* EMOJI URL \s+ EMOJI
 
 |
 
-Hi\s+I'm\s+Barbara,\s* EMOJI I\s+want\s+a\s+bad\s+guy\s+!+\s* URL \s+ EMOJI
+Hi\s+I'm\s+[A-Za-z]+,\s* EMOJI I\s+want\s+a\s+bad\s+guy\s+!+\s* URL \s+ EMOJI
 
 |
 
-My\s+name\s+is\s+Amanda\.\s+
+My\s+name\s+is\s+[A-Za-z]+\.\s+
 I\s+want\s+to\s+get\s+acquainted\s+with\s+the\s+guy,\s+
 EMOJI my\s+photos\s+on\s+the\s+link\.\s*>+\s* URL \s*
 
