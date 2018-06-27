@@ -38,6 +38,8 @@ banned_ids = set()
 banned_images = set()
 
 FILTER_URL = r'https?://[\./0-9a-zA-Z]+'
+FILTER_URL_RE = re.compile(FILTER_URL)
+
 # Matches any of the following emoji:
 # U+2764 HEAVY BLACK HEART ❤
 # U+1f5a4 BLACK HEART 🖤
@@ -305,20 +307,20 @@ def kick_user(chat_id, user_id):
     send_request('kickChatMember', args)
 
 def is_banned_chat(message, forward):
-    if 'username' in forward:
-        if forward['username'] in banned_users:
-            return True
-
-    if 'id' in forward:
-        if forward['id'] in banned_ids:
-            return True
+    try:
+        if (forward['username'] in banned_users or
+            forward['id'] in banned_ids):
+            return "plusendaĵo de malpermesita kanalo"
+    except KeyError:
+        pass
 
     if ('photo' in message or 'document' in message) and 'caption' in message:
         caption = message['caption']
         if FILTER_RE.match(caption):
-            return True
+            caption = FILTER_URL_RE.sub("<i>ligilo</i>", html.escape(caption))
+            return "bildo kun la priskribo «{}»".format(caption)
 
-    return False
+    return None
 
 def is_banned(message):
     if 'forward_from_chat' in message:
@@ -327,9 +329,9 @@ def is_banned(message):
     if 'photo' in message and 'caption' not in message:
         for file in message['photo']:
             if 'file_id' in file and file['file_id'] in banned_images:
-                return True
+                return "malpermesita bildo sen priskribo"
 
-    return False
+    return None
 
 def send_reply(message, note):
     args = {
@@ -476,7 +478,8 @@ while True:
             continue
         message_id = message['message_id']
 
-        if not is_banned(message):
+        ban_reason = is_banned(message)
+        if ban_reason is None:
             continue
 
         if 'from' not in message:
@@ -499,8 +502,9 @@ while True:
 
         username = '<a href="tg://user?id={}">{}</a>'.format(from_id, username)
 
-        report("Forigos la mesaĝon {} de {} en {} kaj forbaros rin".format(
-            message_id, username, title))
+        report("Forigos la mesaĝon {} de {} en {} "
+               "kaj forbaros rin pro {}".format(
+            message_id, username, title, ban_reason))
 
         try:
             delete_message(chat_id, message_id)
