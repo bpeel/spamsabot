@@ -79,7 +79,7 @@ We\s+only\s+have\s+free\s+girls\s*
 
 |
 
-come\s+in\s+and\s+meet\s+URL\s*
+come\s+(?:in\s+)?and\s+(?:meet|see)\s+(?:me\s+)?URL\s*
 
 |
 
@@ -121,6 +121,7 @@ assert(FILTER_RE.match(r"http://bit.do/enVd4  ◀️ 🖤❤️🖤❤️ You wa
 assert(FILTER_RE.match(r"💚💙💜 You want sex❓We only have free girls⚠️🔞 "
                        r"http://bit.do/enVd4"))
 assert(FILTER_RE.match(r"come in and meet http://catcut.net/n0Pv"))
+assert(FILTER_RE.match(r"come and see me http://catcut.net/POQv"))
 assert(FILTER_RE.match(r"💋 Relationships For sex, Here ! "
                        r"http://bit.ly/2Ij6X9D ❤️❗️"))
 assert(FILTER_RE.match(r"💋Girls are waiting for you, bad guy, Hot Fast sex "
