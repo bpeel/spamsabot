@@ -350,12 +350,44 @@ def send_reply(message, note):
 
     send_request('sendMessage', args)
 
+def add_banned_avatar(message, user_id):
+    try:
+        photos = get_profile_photo(user_id)
+    except HandleMessageException as e:
+        print("{}".format(e), file=sys.stderr)
+        return
+
+    to_ban = []
+
+    for photo in photos:
+        for sized_photo in photo:
+            try:
+                file_id = sized_photo['file_id']
+                if file_id not in banned_avatars:
+                    to_ban.append(file_id)
+            except KeyError as e:
+                pass
+
+    if len(to_ban) <= 0:
+        send_reply(message, "Neniu nova profilbildo estis trovita")
+    else:
+        banned_avatars.update(to_ban)
+        save_blacklist()
+        send_reply(message,
+                   "Aldonis la jenajn profilbildojn al la nigra listo: " +
+                   ", ".join(to_ban))
+
 def process_command(message, command, args):
     if command == '/start':
         send_reply(message,
                    "Ĉi tiu roboto provas aŭtomate forigi kelkajn tipojn de "
                    "spamo. Aldonu ĝin al grupo kaj administrantigu ĝin se vi "
                    "volas uzi ĝin en via grupo.")
+    elif message['from']['id'] == administrator_id:
+        if command == '/avatar':
+            md = re.match(r'\s*(-?[0-9]+)\s*$', args)
+            if md:
+                add_banned_avatar(message, int(md.group(1)))
 
 def find_command(message):
     if 'entities' not in message or 'text' not in message:
@@ -476,6 +508,17 @@ def contains_banned_avatar(photos):
 
     return False
 
+def get_profile_photo(user_id):
+    args = {
+        'user_id': user_id,
+        'limit': 1
+    }
+    rep = send_request('getUserProfilePhotos', args)
+    try:
+        return rep['result']['photos']
+    except KeyError:
+        raise HandleMessageException("Missing photos in result")
+
 def check_banned_avatar(message):
     try:
         new_members = message['new_chat_members']
@@ -486,12 +529,7 @@ def check_banned_avatar(message):
 
     for user in new_members:
         try:
-            args = {
-                'user_id': user['id'],
-                'limit': 1
-            }
-            rep = send_request('getUserProfilePhotos', args)
-            photos = rep['result']['photos']
+            photos = get_profile_photo(user['id'])
         except (KeyError, HandleMessageException) as e:
             print("{}".format(e), file=sys.stderr)
             continue
