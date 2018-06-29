@@ -36,6 +36,7 @@ blacklist_file = os.path.join(conf_dir, "blacklist")
 banned_users = set()
 banned_ids = set()
 banned_images = set()
+banned_avatars = set()
 
 FILTER_URL = r'https?://[\./0-9a-zA-Z]+'
 FILTER_URL_RE = re.compile(FILTER_URL)
@@ -147,6 +148,10 @@ try:
             if md:
                 banned_images.add(md.group(1))
                 continue
+            md = re.match('^\s*avatar\s+(\S+)\s*$', line)
+            if md:
+                banned_avatars.add(md.group(1))
+                continue
             md = re.match('^\s*(-?[0-9]+)\s*$', line)
             if md:
                 banned_ids.add(int(md.group(1)))
@@ -201,6 +206,8 @@ def save_blacklist():
             print(user, file=f)
         for image in banned_images:
             print("image {}".format(image), file=f)
+        for avatar in banned_avatars:
+            print("avatar {}".format(avatar), file=f)
 
 def is_valid_update(update):
     try:
@@ -443,7 +450,63 @@ def handle_spam_forward(message):
 
     if 'photo' in message and 'caption' not in message:
         return handle_photo_forward(message)
-    
+
+def username_for_report(user):
+    try:
+        from_id = user['id']
+    except KeyError:
+        from_id = '?'
+
+    if 'username' in user:
+        username = "{} ({})".format(html.escape(user['username']),
+                                    from_id)
+    else:
+        username = str(from_id)
+
+    return '<a href="tg://user?id={}">{}</a>'.format(from_id, username)
+
+def contains_banned_avatar(photos):
+    for photo in photos:
+        for sized_photo in photo:
+            try:
+                if sized_photo['file_id'] in banned_avatars:
+                    return True
+            except KeyError:
+                pass
+
+    return False
+
+def check_banned_avatar(message):
+    try:
+        new_members = message['new_chat_members']
+    except KeyError:
+        return False
+
+    ret = False
+
+    for user in new_members:
+        try:
+            args = {
+                'user_id': user['id'],
+                'limit': 1
+            }
+            rep = send_request('getUserProfilePhotos', args)
+            photos = rep['result']['photos']
+        except (KeyError, HandleMessageException) as e:
+            print("{}".format(e), file=sys.stderr)
+            continue
+
+        if contains_banned_avatar(photos):
+            report("Forbaros {} pro malpermesita profilbildo".format(
+                username_for_report(user)))
+            try:
+                kick_user(message['chat']['id'], message['message_id'])
+            except (KeyError, HandleMessageException) as e:
+                  print("{}".format(e), file=sys.stderr)
+            ret = True
+
+    return ret
+
 while True:
     now = int(time.time())
 
@@ -471,6 +534,9 @@ while True:
                     print("{}".format(e), file=sys.stderr)
             continue
 
+        if check_banned_avatar(message):
+            continue
+
         if 'id' not in chat:
             continue
         chat_id = chat['id']
@@ -495,13 +561,7 @@ while True:
         else:
             title = str(chat_id)
 
-        if 'username' in from_info:
-            username = "{} ({})".format(html.escape(from_info['username']),
-                                        from_id)
-        else:
-            username = str(from_id)
-
-        username = '<a href="tg://user?id={}">{}</a>'.format(from_id, username)
+        username = username_for_report(from_info)
 
         report("Forigos la mesaĝon {} de {} en {} "
                "kaj forbaros rin pro {}".format(
