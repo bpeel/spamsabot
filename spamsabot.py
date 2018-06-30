@@ -177,6 +177,14 @@ try:
 except FileNotFoundError:
     report_channel = None
 
+try:
+    with open(os.path.join(conf_dir, "avatar_channel"),
+              'r',
+              encoding='utf-8') as f:
+        avatar_channel = f.read().strip()
+except FileNotFoundError:
+    avatar_channel = None
+
 urlbase = "https://api.telegram.org/bot" + apikey + "/"
 get_updates_url = urlbase + "getUpdates"
 
@@ -542,6 +550,30 @@ def check_banned_avatar(message):
             except (KeyError, HandleMessageException) as e:
                   print("{}".format(e), file=sys.stderr)
             ret = True
+        elif avatar_channel is not None:
+            try:
+                photo_id = photos[0][-1]['file_id']
+            except (IndexError, KeyError):
+                continue
+
+            caption = username_for_report(user)
+            try:
+                chat_title = html.escape(message['chat']['title'])
+                caption = "{} en {}".format(caption, chat_title)
+            except KeyError as e:
+                pass
+
+            args = {
+                'chat_id': avatar_channel,
+                'photo': photo_id,
+                'caption': caption,
+                'parse_mode': 'HTML'
+            }
+
+            try:
+                send_request('sendPhoto', args)
+            except HandleMessageException as e:
+                print("{}".format(e), file=sys.stderr)
 
     return ret
 
