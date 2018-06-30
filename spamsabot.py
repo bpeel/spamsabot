@@ -358,13 +358,7 @@ def send_reply(message, note):
 
     send_request('sendMessage', args)
 
-def add_banned_avatar(message, user_id):
-    try:
-        photos = get_profile_photo(user_id)
-    except HandleMessageException as e:
-        print("{}".format(e), file=sys.stderr)
-        return
-
+def add_banned_avatar_photos(message, photos):
     to_ban = []
 
     for photo in photos:
@@ -384,6 +378,15 @@ def add_banned_avatar(message, user_id):
         send_reply(message,
                    "Aldonis la jenajn profilbildojn al la nigra listo: " +
                    ", ".join(to_ban))
+
+def add_banned_avatar(message, user_id):
+    try:
+        photos = get_profile_photo(user_id)
+    except HandleMessageException as e:
+        print("{}".format(e), file=sys.stderr)
+        return
+
+    return add_banned_avatar_photos(message, photos)
 
 def process_command(message, command, args):
     if command == '/start':
@@ -418,6 +421,14 @@ def find_command(message):
 
     return None
 
+def handle_banned_avatar_forward(message):
+    try:
+        photos = [message['photo']]
+    except KeyError:
+        pass
+    else:
+        add_banned_avatar_photos(message, photos)
+
 def handle_chat_forward(message):
     global banned_ids, banned_users
 
@@ -425,7 +436,10 @@ def handle_chat_forward(message):
 
     if 'username' in forward:
         username = forward['username']
-        if username in banned_users:
+        if "@{}".format(username) == avatar_channel:
+            handle_banned_avatar_forward(message)
+            return True
+        elif username in banned_users:
             send_reply(message,
                        "La uzantonomo {} jam estas en la nigra listo".format(
                            username))
@@ -436,7 +450,10 @@ def handle_chat_forward(message):
                            username))
     elif 'id' in forward:
         user_id = forward['id']
-        if user_id in banned_ids:
+        if user_id == avatar_channel:
+            handle_banned_avatar_forward(message)
+            return True
+        elif user_id in banned_ids:
             send_reply(message,
                        "La uzantonumero {} jam estas en la nigra listo".format(
                            user_id))
