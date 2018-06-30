@@ -182,6 +182,10 @@ try:
               'r',
               encoding='utf-8') as f:
         avatar_channel = f.read().strip()
+        try:
+            avatar_channel = int(avatar_channel)
+        except ValueError:
+            pass
 except FileNotFoundError:
     avatar_channel = None
 
