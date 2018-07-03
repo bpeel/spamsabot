@@ -239,7 +239,8 @@ def get_updates():
     global last_update_id
 
     args = {
-        'allowed_updates': ['message']
+        'allowed_updates': ['message'],
+        'timeout': 300
     }
 
     if last_update_id is not None:
