@@ -527,6 +527,14 @@ def username_for_report(user):
 
     return '<a href="tg://user?id={}">{}</a>'.format(from_id, username)
 
+def chat_title_for_report(chat):
+    if 'title' in chat:
+        title = html.escape(chat['title'])
+    else:
+        title = str(chat_id)
+
+    return title
+
 def contains_banned_avatar(photos):
     for photo in photos:
         for sized_photo in photo:
@@ -565,8 +573,9 @@ def check_banned_avatar(message):
             continue
 
         if contains_banned_avatar(photos):
-            report("Forbaros {} pro malpermesita profilbildo".format(
-                username_for_report(user)))
+            report("Forbaros {} de {} pro malpermesita profilbildo".format(
+                username_for_report(user),
+                chat_title_for_report(message['chat'])))
             try:
                 kick_user(message['chat']['id'], message['message_id'])
             except (KeyError, HandleMessageException) as e:
@@ -648,12 +657,8 @@ while True:
             continue
         from_id = from_info['id']
 
-        if 'title' in chat:
-            title = html.escape(chat['title'])
-        else:
-            title = str(chat_id)
-
         username = username_for_report(from_info)
+        title = chat_title_for_report(chat)
 
         report("Forigos la mesaĝon {} de {} en {} "
                "kaj forbaros rin pro {}".format(
