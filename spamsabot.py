@@ -577,7 +577,7 @@ def check_banned_avatar(message):
                 username_for_report(user),
                 chat_title_for_report(message['chat'])))
             try:
-                kick_user(message['chat']['id'], message['message_id'])
+                kick_user(message['chat']['id'], user['id'])
             except (KeyError, HandleMessageException) as e:
                   print("{}".format(e), file=sys.stderr)
             ret = True
