@@ -611,7 +611,12 @@ def check_banned_avatar(message):
             try:
                 kick_user(message['chat']['id'], user['id'])
             except (KeyError, HandleMessageException) as e:
-                  print("{}".format(e), file=sys.stderr)
+                  print(("Dum provo forbari {} de {} "
+                         "pro malpermesita profilbildo: {}").format(
+                             username_for_report(user),
+                             chat_title_for_report(message['chat']),
+                             e),
+                        file=sys.stderr)
             else:
                 report("Forbaris {} de {} pro malpermesita profilbildo".format(
                     username_for_report(user),
