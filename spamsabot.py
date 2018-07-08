@@ -54,13 +54,14 @@ FILTER_URL_RE = re.compile(FILTER_URL)
 # U+2705 WHITE HEAVY CHECK MARK ✅
 # U+2747 SPARKLE ❇
 # U+26A0 WARNING SIGN ⚠
+# U+2B55 HEAVY LARGE CIRCLE ⭕
 # U+1f493 - U+1f49f various hearts
 # They can optionally be followed by a variant selector
 # (U+fe00-U+fe0f) and \uff (I’m not really sure why but some messages
 # have that). These can be repeated any amount of times and be
 # seperated by zero or more whitespace characters.
 FILTER_EMOJI = ("(?:[\u2764\U0001f5a4\u2757\u2753\U0001f48b\U0001f46b\U0001f51e"
-                "\u25c0\u25b6\u2705\u2747\u26a0\U0001f493-\U0001f49f]"
+                "\u25c0\u25b6\u2705\u2747\u26a0\u2b55\U0001f493-\U0001f49f]"
                 "[\ufe00-\ufe0f]?\u00ff?\\s*)+")
 
 FILTER_RE_STRING = r"""
@@ -105,6 +106,24 @@ My\s+name\s+is\s+[A-Za-z]+\.\s+
 I\s+want\s+to\s+get\s+acquainted\s+with\s+the\s+guy,\s+
 EMOJI my\s+photos\s+on\s+the\s+link\.\s*>+\s* URL \s*
 
+|
+
+EMOJI URL \s+ EMOJI Do\s+you\s+want\s+a\s+beautiful\s+girl\s* EMOJI
+Then\s+to\s+you\s+to\s+us\s* EMOJI URL \s+ EMOJI
+
+|
+
+(?:
+I\s+would\s+like\s+to\s+drive\s+you\s+wild |
+My\s+breast,\s+my\s+neck,\s+my\s+buttocks,\s+my\s+hips |
+I\s+find\s+long\s+love\s+play\s+annoying |
+I\s+would\s+like\s+to\s+do\s+it\s+gently |
+I\s+prefer\s+long,\s+tender\s+uninhibited\s+love\s+making |
+I’m\s+here,\s+go\s+to\s+my\s+chat |
+sign\s+up\s+for\s+free\s+and\s+see\s+me\s+live\s+here
+)
+\s+ URL
+
 )
 
 $
@@ -134,6 +153,22 @@ assert(FILTER_RE.match(r"Hi I'm Barbara, 💋 I want a bad guy !!! "
 assert(FILTER_RE.match(r"My name is Amanda. I want to get acquainted with the "
                        r"guy, ❤️❗️ my photos on the link. >>> "
                        r"http://bit.ly/2K6g2IH"))
+assert(FILTER_RE.match(r"⭕️🔞⭕️ https://bit.ly/2KmrvQm ⚠️  "
+                       r"Do you want a beautiful girl❓ Then to you to us❗️ "
+                       r"https://bit.ly/2KmrvQm 💋"))
+assert(FILTER_RE.match(r"I would like to drive you wild "
+                       r"http://catcut.net/4SWv"))
+assert(FILTER_RE.match(r"My breast, my neck, my buttocks, my hips "
+                       r"http://catcut.net/4SWv"))
+assert(FILTER_RE.match(r"I find long love play annoying "
+                       r"http://catcut.net/4SWv"))
+assert(FILTER_RE.match(r"I would like to do it gently "
+                       r"http://catcut.net/4SWv"))
+assert(FILTER_RE.match(r"I prefer long, tender uninhibited love making "
+                       r"http://catcut.net/4SWv"))
+assert(FILTER_RE.match(r"I’m here, go to my chat http://catcut.net/4SWv"))
+assert(FILTER_RE.match(r"sign up for free and see me live here "
+                       r"http://catcut.net/4SWv"))
 
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
