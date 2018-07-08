@@ -573,13 +573,14 @@ def check_banned_avatar(message):
             continue
 
         if contains_banned_avatar(photos):
-            report("Forbaros {} de {} pro malpermesita profilbildo".format(
-                username_for_report(user),
-                chat_title_for_report(message['chat'])))
             try:
                 kick_user(message['chat']['id'], user['id'])
             except (KeyError, HandleMessageException) as e:
                   print("{}".format(e), file=sys.stderr)
+            else:
+                report("Forbaris {} de {} pro malpermesita profilbildo".format(
+                    username_for_report(user),
+                    chat_title_for_report(message['chat'])))
             ret = True
         elif avatar_channel is not None:
             try:
