@@ -28,6 +28,7 @@ import re
 import itertools
 import datetime
 import http
+import hashlib
 
 conf_dir = os.path.expanduser("~/.spamsabot")
 apikey_file = os.path.join(conf_dir, "apikey")
@@ -224,7 +225,9 @@ try:
 except FileNotFoundError:
     avatar_channel = None
 
-urlbase = "https://api.telegram.org/bot" + apikey + "/"
+apihost = "https://api.telegram.org/"
+urlbase = apihost + "bot" + apikey + "/"
+file_urlbase = apihost + "file/bot" + apikey + "/"
 get_updates_url = urlbase + "getUpdates"
 
 last_update_id = None
@@ -402,13 +405,12 @@ def add_banned_avatar_photos(message, photos):
     to_ban = []
 
     for photo in photos:
-        for sized_photo in photo:
-            try:
-                file_id = sized_photo['file_id']
-                if file_id not in banned_avatars:
-                    to_ban.append(file_id)
-            except KeyError as e:
-                pass
+        try:
+            photo_hash = file_id_to_hash(photo['file_id'])
+            if photo_hash not in banned_avatars:
+                to_ban.append(photo_hash)
+        except (KeyError, HandleMessageException) as e:
+            print("{}".format(e), file=sys.stderr)
 
     if len(to_ban) <= 0:
         send_reply(message, "Neniu nova profilbildo estis trovita")
@@ -463,7 +465,7 @@ def find_command(message):
 
 def handle_banned_avatar_forward(message):
     try:
-        photos = [message['photo']]
+        photos = [smallest_sized_photo(message['photo'])]
     except KeyError:
         pass
     else:
@@ -572,14 +574,40 @@ def chat_title_for_report(chat):
 
 def contains_banned_avatar(photos):
     for photo in photos:
-        for sized_photo in photo:
-            try:
-                if sized_photo['file_id'] in banned_avatars:
-                    return True
-            except KeyError:
-                pass
+        try:
+            photo_hash = file_id_to_hash(photo['file_id'])
+            if photo_hash in banned_avatars:
+                return True
+        except (KeyError, HandleMessageException) as e:
+            print("{}".format(e), file=sys.stderr)
 
     return False
+
+def smallest_sized_photo(photo):
+    smallest = None
+    smallest_size = 0
+
+    for sized_photo in photo:
+        size = sized_photo['width'] * sized_photo['height']
+        if smallest is None or size < smallest_size:
+            smallest_size = size
+            smallest = sized_photo
+
+    return smallest
+
+def file_id_to_hash(file_id):
+    rep = send_request('getFile', { 'file_id': file_id  })
+    file_url = file_urlbase + rep['result']['file_path']
+
+    try:
+        req = urllib.request.Request(file_url)
+        data = urllib.request.urlopen(req).read()
+    except (urllib.error.URLError, http.client.HTTPException, IOError) as e:
+        raise HandleMessageException(e)
+
+    md5 = hashlib.md5()
+    md5.update(data)
+    return md5.hexdigest()
 
 def get_profile_photo(user_id):
     args = {
@@ -588,7 +616,7 @@ def get_profile_photo(user_id):
     }
     rep = send_request('getUserProfilePhotos', args)
     try:
-        return rep['result']['photos']
+        return [smallest_sized_photo(x) for x in rep['result']['photos']]
     except KeyError:
         raise HandleMessageException("Missing photos in result")
 
@@ -624,7 +652,7 @@ def check_banned_avatar(message):
             ret = True
         elif avatar_channel is not None:
             try:
-                photo_id = photos[0][-1]['file_id']
+                photo_id = photos[0]['file_id']
             except (IndexError, KeyError):
                 continue
 
