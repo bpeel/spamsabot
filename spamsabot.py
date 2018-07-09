@@ -39,6 +39,15 @@ banned_ids = set()
 banned_images = set()
 banned_avatars = set()
 
+# In an attempt to reduce the calls to getUserProfilePhotos, it will
+# cache the results for each user ID here for 10 minutes. The values
+# in the dictionary are a tuple with the time it was requested and the
+# result. We don’t want to cache it forever in case the bot
+# accidentally blocks a real person and we want to give them a chance
+# to change their avatar.
+AVATAR_CACHE_TIME = 10 * 60
+avatar_cache = {}
+
 FILTER_URL = r'https?://[\./0-9a-zA-Z]+'
 FILTER_URL_RE = re.compile(FILTER_URL)
 
@@ -611,15 +620,24 @@ def file_id_to_hash(file_id):
     return md5.hexdigest()
 
 def get_profile_photo(user_id):
+    if user_id in avatar_cache:
+        timestamp, res = avatar_cache[user_id]
+        if time.monotonic() - timestamp <= AVATAR_CACHE_TIME:
+            return res
+        del avatar_cache[user_id]
+
     args = {
         'user_id': user_id,
         'limit': 1
     }
     rep = send_request('getUserProfilePhotos', args)
     try:
-        return [smallest_sized_photo(x) for x in rep['result']['photos']]
+        res = [smallest_sized_photo(x) for x in rep['result']['photos']]
     except KeyError:
         raise HandleMessageException("Missing photos in result")
+
+    avatar_cache[user_id] = (time.monotonic(), res)
+    return res
 
 def check_banned_avatar(message):
     try:
