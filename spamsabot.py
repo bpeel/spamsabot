@@ -48,6 +48,10 @@ banned_avatars = set()
 AVATAR_CACHE_TIME = 10 * 60
 avatar_cache = {}
 
+# Mapping from file_id to md5 hash to avoid repeatedly downloading
+# photos.
+file_hash_cache = {}
+
 FILTER_URL = r'https?://[\./0-9a-zA-Z]+'
 FILTER_URL_RE = re.compile(FILTER_URL)
 
@@ -606,6 +610,11 @@ def smallest_sized_photo(photo):
     return smallest
 
 def file_id_to_hash(file_id):
+    try:
+        return file_hash_cache[file_id]
+    except KeyError:
+        pass
+
     rep = send_request('getFile', { 'file_id': file_id  })
     file_url = file_urlbase + rep['result']['file_path']
 
@@ -617,7 +626,10 @@ def file_id_to_hash(file_id):
 
     md5 = hashlib.md5()
     md5.update(data)
-    return md5.hexdigest()
+    res = md5.hexdigest()
+
+    file_hash_cache[file_id] = res
+    return res
 
 def get_profile_photo(user_id):
     if user_id in avatar_cache:
