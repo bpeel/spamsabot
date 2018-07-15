@@ -332,8 +332,15 @@ def send_request(request, args):
         req.add_header('Content-Type', 'application/json; charset=utf-8')
         rep = json.load(io.TextIOWrapper(urllib.request.urlopen(req), 'utf-8'))
     except (urllib.error.URLError, http.client.HTTPException) as e:
+        note = repr(e)
+        read_op = getattr(e, "read", None)
+        if callable(read_op):
+            try:
+                note = note + ": " + read_op().decode('utf-8')
+            except UnicodeDecodeError:
+                pass
         raise HandleMessageException("{} while handling {} {}".format(
-            e, request, args))
+            note, request, args))
     except json.JSONDecodeError as e:
         raise HandleMessageException(e)
 
