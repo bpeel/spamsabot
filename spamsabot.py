@@ -640,6 +640,7 @@ def get_profile_photo(user_id):
 
     args = {
         'user_id': user_id,
+        'offset': 0,
         'limit': 1
     }
     rep = send_request('getUserProfilePhotos', args)
