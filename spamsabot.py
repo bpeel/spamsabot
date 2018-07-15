@@ -663,7 +663,7 @@ def check_banned_avatar(message):
         try:
             photos = get_profile_photo(user['id'])
         except (KeyError, HandleMessageException) as e:
-            print("Error getting photos from {}: {}".format(photos, e),
+            print("Error getting photos from {}: {}".format(message, e),
                   file=sys.stderr)
             continue
 
