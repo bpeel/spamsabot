@@ -52,6 +52,10 @@ avatar_cache = {}
 # photos.
 file_hash_cache = {}
 
+# Queue of messages to retry. Each element is a tuple of (timestamp,
+# retry_count, message)
+retry_queue = []
+
 FILTER_URL = r'https?://[\./0-9a-zA-Z]+'
 FILTER_URL_RE = re.compile(FILTER_URL)
 
@@ -288,6 +292,14 @@ def is_valid_update(update):
 
 def get_updates():
     global last_update_id
+
+    timeout = 300
+    now = time.monotonic()
+
+    for timestamp, retry_count, message in retry_queue:
+        next_time = max(timestamp - now, 0)
+        if next_time < timeout:
+            timeout = next_time
 
     args = {
         'allowed_updates': ['message'],
@@ -659,7 +671,10 @@ def get_profile_photo(user_id):
     avatar_cache[user_id] = (time.monotonic(), res)
     return res
 
-def check_banned_avatar(message):
+def retry_message(message, retry_count):
+    retry_queue.append((time.monotonic() + 60, retry_count, message))
+
+def check_banned_avatar(message, retry_count):
     try:
         new_members = message['new_chat_members']
     except KeyError:
@@ -673,6 +688,8 @@ def check_banned_avatar(message):
         except (KeyError, HandleMessageException) as e:
             print("Error getting photos from {}: {}".format(message, e),
                   file=sys.stderr)
+            if retry_count < 2:
+                retry_message(message, retry_count + 1)
             continue
 
         if contains_banned_avatar(photos):
@@ -717,64 +734,76 @@ def check_banned_avatar(message):
 
     return ret
 
-while True:
-    now = int(time.time())
+def handle_message(message, retry_count = 0):
+    chat = message['chat']
+
+    if 'type' in chat and chat['type'] == 'private':
+        if handle_spam_forward(message):
+            return
+        command = find_command(message)
+        if command is not None:
+            try:
+                process_command(message, command[0], command[1])
+            except ProcessCommandException as e:
+                print("{}".format(e), file=sys.stderr)
+        return
+
+    if check_banned_avatar(message, retry_count):
+        return
+
+    if 'id' not in chat:
+        return
+    chat_id = chat['id']
+
+    if 'message_id' not in message:
+        return
+    message_id = message['message_id']
+
+    ban_reason = is_banned(message)
+    if ban_reason is None:
+        return
+
+    if 'from' not in message:
+        return
+    from_info = message['from']
+    if 'id' not in from_info:
+        return
+    from_id = from_info['id']
+
+    username = username_for_report(from_info)
+    title = chat_title_for_report(chat)
+
+    report("Forigos la mesaĝon {} de {} en {} "
+           "kaj forbaros rin pro {}".format(
+        message_id, username, title, ban_reason))
 
     try:
-        updates = get_updates()
+        delete_message(chat_id, message_id)
+        kick_user(chat_id, from_id)
+    except HandleMessageException as e:
+        print("{}".format(e), file=sys.stderr)
 
+while True:
+    try:
+        updates = get_updates()
     except GetUpdatesException as e:
         print("{}".format(e), file=sys.stderr)
         # Delay for a bit before trying again to avoid DOSing the server
         time.sleep(60)
         continue
 
+    if len(retry_queue) > 0:
+        messages = retry_queue
+        retry_queue = []
+        now = time.monotonic()
+
+        for timestamp, retry_count, message in messages:
+            if now >= timestamp:
+                print("Retrying {}".format(message), file=sys.stderr)
+                handle_message(message, retry_count)
+            else:
+                retry_queue.append((timestamp, retry_count, message))
+
     for update in updates:
         message = update['message']
-        chat = message['chat']
-
-        if 'type' in chat and chat['type'] == 'private':
-            if handle_spam_forward(message):
-                continue
-            command = find_command(message)
-            if command is not None:
-                try:
-                    process_command(message, command[0], command[1])
-                except ProcessCommandException as e:
-                    print("{}".format(e), file=sys.stderr)
-            continue
-
-        if check_banned_avatar(message):
-            continue
-
-        if 'id' not in chat:
-            continue
-        chat_id = chat['id']
-
-        if 'message_id' not in message:
-            continue
-        message_id = message['message_id']
-
-        ban_reason = is_banned(message)
-        if ban_reason is None:
-            continue
-
-        if 'from' not in message:
-            continue
-        from_info = message['from']
-        if 'id' not in from_info:
-            continue
-        from_id = from_info['id']
-
-        username = username_for_report(from_info)
-        title = chat_title_for_report(chat)
-
-        report("Forigos la mesaĝon {} de {} en {} "
-               "kaj forbaros rin pro {}".format(
-            message_id, username, title, ban_reason))
-
-        try:
-            delete_message(chat_id, message_id)
-            kick_user(chat_id, from_id)
-        except HandleMessageException as e:
-            print("{}".format(e), file=sys.stderr)
+        handle_message(message)
