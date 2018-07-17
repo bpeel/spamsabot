@@ -672,7 +672,9 @@ def get_profile_photo(user_id):
     return res
 
 def retry_message(message, retry_count):
-    retry_queue.append((time.monotonic() + 60, retry_count, message))
+    retry_queue.append((time.monotonic() + 60 * 2 ** retry_count,
+                        retry_count + 1,
+                        message))
 
 def check_banned_avatar(message, retry_count):
     try:
@@ -688,8 +690,10 @@ def check_banned_avatar(message, retry_count):
         except (KeyError, HandleMessageException) as e:
             print("Error getting photos from {}: {}".format(message, e),
                   file=sys.stderr)
-            if retry_count < 2:
-                retry_message(message, retry_count + 1)
+            if retry_count < 3:
+                retry_message(message, retry_count)
+            else:
+                print("giving up on {}".format(message), file=sys.stderr)
             continue
 
         if contains_banned_avatar(photos):
