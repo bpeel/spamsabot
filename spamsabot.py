@@ -140,7 +140,7 @@ I\s+prefer\s+long,\s+tender\s+uninhibited\s+love\s+making |
 I’m\s+here,\s+go\s+to\s+my\s+chat |
 sign\s+up\s+for\s+free\s+and\s+see\s+me\s+live\s+here
 )
-\s+ URL
+\s* URL
 
 )
 
@@ -187,7 +187,7 @@ assert(FILTER_RE.match(r"I prefer long, tender uninhibited love making "
 assert(FILTER_RE.match(r"I’m here, go to my chat http://catcut.net/4SWv"))
 assert(FILTER_RE.match(r"sign up for free and see me live here "
                        r"http://catcut.net/4SWv"))
-
+assert(FILTER_RE.match(r"I would like to drive you wildhttps://bit.ly/2Nlxwhg"))
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
 
