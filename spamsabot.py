@@ -683,6 +683,7 @@ def check_banned_avatar(message, retry_count):
         return False
 
     ret = False
+    found = False
 
     for user in new_members:
         try:
@@ -710,6 +711,7 @@ def check_banned_avatar(message, retry_count):
                 report("Forbaris {} de {} pro malpermesita profilbildo".format(
                     username_for_report(user),
                     chat_title_for_report(message['chat'])))
+                found = True
             ret = True
         elif avatar_channel is not None:
             try:
@@ -735,6 +737,12 @@ def check_banned_avatar(message, retry_count):
                 send_request('sendPhoto', args)
             except HandleMessageException as e:
                 print("{}".format(e), file=sys.stderr)
+
+    if found:
+        try:
+            delete_message(message['chat']['id'], message['message_id'])
+        except (HandleMessageException, KeyError) as e:
+            print("{}".format(e), file=sys.stderr)
 
     return ret
 
