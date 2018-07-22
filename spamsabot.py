@@ -56,7 +56,7 @@ file_hash_cache = {}
 # retry_count, message)
 retry_queue = []
 
-FILTER_URL = r'https?://[\./0-9a-zA-Z]+'
+FILTER_URL = r'(?:www\.|https?://)[\./0-9a-zA-Z]+'
 FILTER_URL_RE = re.compile(FILTER_URL)
 
 # Matches any of the following emoji:
@@ -138,7 +138,8 @@ I\s+find\s+long\s+love\s+play\s+annoying |
 I\s+would\s+like\s+to\s+do\s+it\s+gently |
 I\s+prefer\s+long,\s+tender\s+uninhibited\s+love\s+making |
 I’m\s+here,\s+go\s+to\s+my\s+chat |
-sign\s+up\s+for\s+free\s+and\s+see\s+me\s+live\s+here
+sign\s+up\s+for\s+free\s+and\s+see\s+me\s+live\s+here |
+I'm\s+here
 )
 \s* URL
 
@@ -188,6 +189,8 @@ assert(FILTER_RE.match(r"I’m here, go to my chat http://catcut.net/4SWv"))
 assert(FILTER_RE.match(r"sign up for free and see me live here "
                        r"http://catcut.net/4SWv"))
 assert(FILTER_RE.match(r"I would like to drive you wildhttps://bit.ly/2Nlxwhg"))
+assert(FILTER_RE.match(r"I'm here www.tits777.top"))
+
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
 
