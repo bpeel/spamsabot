@@ -592,7 +592,14 @@ def username_for_report(user):
     except KeyError:
         from_id = '?'
 
-    if 'username' in user:
+    if 'first_name' in user:
+        name = user['first_name']
+        try:
+            name = "{} {}".format(name, user['last_name'])
+        except KeyError:
+            pass
+        username = "{} ({})".format(html.escape(name), from_id)
+    elif 'username' in user:
         username = "{} ({})".format(html.escape(user['username']),
                                     from_id)
     else:
