@@ -143,6 +143,55 @@ I'm\s+here
 )
 \s* URL
 
+|
+
+\w+\s+\d+\s*,\s+go\s+to\s+my\s+private\s+chat\s+URL\s+
+register\s+free\)+\s*
+
+|
+
+i'm\s+here\s+guys\s+URL\s+go\s+to\s+me\s+pls\)+\s*
+
+|
+
+\w+\s+\d+\s*,\s+URL\s+\s+free\s+datin[dg]\s+and\s+
+...\)+\s+here\s*
+
+|
+
+URL\s+its\s+my\s+link.\s+my\s+name\s+is\s+\w+,\s+
+\d+\s+go\s+to\s+my\s+chat\s*
+
+|
+
+register\s+my\s+link\s+pls\s+URL\s+its\s+real\s+
+free\)+\s*
+
+|
+
+хочу\s+познакомится\s+с\s+парнем,\s+зайди\s+и\s+найди\s+меня\s+сдесь\s+
+URL\s+\s+я\s+очень\s+жду\)+\s*
+
+|
+
+заходи,\s+регистрируйся\s+и\s+смотри\s+бесплатно\s+мой\s+приват\s+
+чат\s+сдесь\s+URL\s*
+
+|
+
+ищу\s+парня,\s+регистрируйся\s+бесплатно\s+и\s+увидешь\s+меня\s+
+URL\s*
+
+|
+
+[\w\u0430-\u044f]+\s+\d+,\s+жду\s+настоящего\s+мужчину,\s+я\s+сдесь\s+
+URL\s*
+
+|
+
+Кто\s+хочет\s+пошалить\s+со\s+мной\?\s+URL\s+
+это\s+моя\s+ссылочка\s*
+
 )
 
 $
@@ -190,6 +239,26 @@ assert(FILTER_RE.match(r"sign up for free and see me live here "
                        r"http://catcut.net/4SWv"))
 assert(FILTER_RE.match(r"I would like to drive you wildhttps://bit.ly/2Nlxwhg"))
 assert(FILTER_RE.match(r"I'm here www.tits777.top"))
+
+assert(FILTER_RE.match(r"Eva 30, go to my private chat https://is.gd/Y6vdsE   "
+                       r"register free)))"))
+assert(FILTER_RE.match(r"i'm here guys https://is.gd/Y6vdsE go to me pls))))"))
+assert(FILTER_RE.match(r"Lisa 28, https://is.gd/Y6vdsE  free datind and "
+                       r"...)))) here"))
+assert(FILTER_RE.match(r"https://is.gd/Y6vdsE its my link. my name is Sara, "
+                       r"32 go to my chat"))
+assert(FILTER_RE.match(r"register my link pls https://is.gd/Y6vdsE its real "
+                       r"free)))"))
+assert(FILTER_RE.match(r"хочу познакомится с парнем, зайди и найди меня сдесь "
+                       r"https://is.gd/Y6vdsE  я очень жду)))"))
+assert(FILTER_RE.match(r"заходи, регистрируйся и смотри бесплатно мой приват "
+                       r"чат сдесь https://is.gd/Y6vdsE"))
+assert(FILTER_RE.match(r"ищу парня, регистрируйся бесплатно и увидешь меня "
+                       r"https://is.gd/Y6vdsE"))
+assert(FILTER_RE.match(r"яна 31, жду настоящего мужчину, я сдесь "
+                       r"https://is.gd/Y6vdsE"))
+assert(FILTER_RE.match(r"Кто хочет пошалить со мной? https://is.gd/Y6vdsE  "
+                       r"это моя ссылочка"))
 
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
