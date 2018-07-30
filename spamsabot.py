@@ -215,6 +215,11 @@ URL\s+и\s+регистрируйся
 Настоящие\s+девушки\s+и\s+живое\s+общение\s+только\s+сдесь\s+URL\s+\s+
 заходи\s+не\s+бойся\s+это\s+бесплатно\)+
 
+|
+
+\w+\s+\d+,\s+looking\s+for\s+a\s+guy,\s+come\s+here\s+URL\s+and\s+
+sign\s+up\s+for\s+free
+
 )
 
 $
@@ -293,6 +298,8 @@ assert(FILTER_RE.match(r"Яна 31, ищу себе парня, заходи с�
 assert(FILTER_RE.match(r"Настоящие девушки и живое общение только сдесь "
                        r"https://is.gd/Y6vdsE  заходи не бойся это "
                        r"бесплатно)))"))
+assert(FILTER_RE.match(r"Irina 30, looking for a guy, come here "
+                       r"https://is.gd/Y6vdsE and sign up for free"))
 
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
