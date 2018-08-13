@@ -87,9 +87,10 @@ FILTER_RE_STRING = r"""
 
 (?:
 
-H(?:i|ey)\s* EMOJI I(?:\'m|\s+am)\s+[A-Za-z]+\s* EMOJI URL \s+ EMOJI
+H(?:i|ey)\s* EMOJI I(?:\'m|\s+am)\s+[A-Za-z]+\s* (?: EMOJI | URL \s* )+
 I(?:\'m|\s+am)\s+[0-9]+\s+years\s+old\s* EMOJI
-I(?:\'m|\s+am)\s+looking\s+for\s+a\s+man\s* EMOJI URL \s* EMOJI
+I(?:\'m|\s+am)\s+looking\s+for\s+a\s+man\s* (?: EMOJI | URL \s* )+
+(?:(?:register | it'?s) \s+ free \s* \)*)?
 
 |
 
@@ -300,6 +301,12 @@ assert(FILTER_RE.match(r"Настоящие девушки и живое общ�
                        r"бесплатно)))"))
 assert(FILTER_RE.match(r"Irina 30, looking for a guy, come here "
                        r"https://is.gd/Y6vdsE and sign up for free"))
+assert(FILTER_RE.match(r"Hey💋 I'm Ella ❤️❗️ https://is.gd/Y6vdsE ❗️I am 20 "
+                       r"years old👫 I'm looking for a man🔞❗️"))
+assert(FILTER_RE.match(r"Hey💋 I'm Alla ❤️❗️ https://is.gd/Y6vdsE ❗️I am 29 "
+                       r"years old👫 I'm looking for a man🔞❗️register free))"))
+assert(FILTER_RE.match(r"Hey💋 I'm Katya❤️❗️ https://is.gd/Y6vdsE ❗️I am 28 "
+                       r"years old👫 I'm looking for a man🔞❗️its free))"))
 
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
