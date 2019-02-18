@@ -56,7 +56,7 @@ file_hash_cache = {}
 # retry_count, message)
 retry_queue = []
 
-FILTER_URL = r'(?:www\.|https?://)[\./0-9a-zA-Z]+'
+FILTER_URL = r'(?:www\.|https?://)[\./0-9a-zA-Z-]+'
 FILTER_URL_RE = re.compile(FILTER_URL)
 
 # Matches any of the following emoji:
