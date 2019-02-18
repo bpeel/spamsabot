@@ -356,6 +356,18 @@ assert(FILTER_RE.match(r"Hey💋 I'm Alla ❤️❗️ https://is.gd/Y6vdsE ❗�
 assert(FILTER_RE.match(r"Hey💋 I'm Katya❤️❗️ https://is.gd/Y6vdsE ❗️I am 28 "
                        r"years old👫 I'm looking for a man🔞❗️its free))"))
 
+FILTER_DIRECT_RE_STRING = r"""
+\s*(?:
+
+http://real-sex\.amazingating\.com
+
+)
+\s*
+$
+"""
+
+FILTER_DIRECT_RE = re.compile(FILTER_DIRECT_RE_STRING, re.VERBOSE)
+
 with open(apikey_file, 'r', encoding='utf-8') as f:
     apikey = f.read().rstrip()
 
@@ -582,14 +594,29 @@ def is_banned_chat(message, forward):
 
     return None
 
+def is_direct_filtered_message(message):
+    try:
+        text = message['text']
+    except KeyError:
+        return None
+
+    if FILTER_DIRECT_RE.match(text):
+        text = FILTER_URL_RE.sub("<i>ligilo</i>", html.escape(text))
+        return "la konata spama mesaĝo «{}»".format(text)
+
+    return None
+
 def is_banned(message):
     if 'forward_from_chat' in message:
         return is_banned_chat(message, message['forward_from_chat'])
 
-    if 'photo' in message and 'caption' not in message:
-        for file in message['photo']:
-            if 'file_id' in file and file['file_id'] in banned_images:
-                return "malpermesita bildo sen priskribo"
+    if 'photo' in message:
+        if 'caption' not in message:
+            for file in message['photo']:
+                if 'file_id' in file and file['file_id'] in banned_images:
+                    return "malpermesita bildo sen priskribo"
+    elif 'forward_from' not in message:
+        return is_direct_filtered_message(message)
 
     return None
 
